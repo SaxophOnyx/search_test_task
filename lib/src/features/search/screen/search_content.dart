@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../domain/domain.dart';
 import '../bloc/search_bloc.dart';
+import '../widgets/error_tile.dart';
+import '../widgets/item_tile.dart';
+import '../widgets/loading_tile.dart';
 
 class SearchContent extends StatefulWidget {
   const SearchContent({super.key});
@@ -81,26 +83,15 @@ class _SearchContentState extends State<SearchContent> {
                 itemBuilder: (BuildContext context, int index) {
                   if (index == state.items.length) {
                     return state.hasError
-                        ? ListTile(
-                            title: const Text('Something went wrong'),
-                            trailing: TextButton(
-                              onPressed: () => context.read<SearchBloc>().add(
-                                const RetrySearch(),
-                              ),
-                              child: const Text('Retry'),
+                        ? ErrorTile(
+                            onRetry: () => context.read<SearchBloc>().add(
+                              const RetrySearch(),
                             ),
                           )
-                        : const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
+                        : const LoadingTile();
                   }
 
-                  final Item item = state.items[index];
-                  return ListTile(
-                    leading: Text('$index'),
-                    title: Text(item.title),
-                  );
+                  return ItemTile(item: state.items[index], index: index);
                 },
                 separatorBuilder: (_, _) => const Divider(),
               );
