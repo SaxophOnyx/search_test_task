@@ -8,6 +8,10 @@ final class ItemMapper {
     return Item(
       id: entity.storyId,
       title: entity.title,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        entity.createdAtI * 1000,
+        isUtc: true,
+      ),
     );
   }
 }

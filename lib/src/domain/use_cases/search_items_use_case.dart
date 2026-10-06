@@ -1,12 +1,12 @@
 import '../domain.dart';
 
 final class SearchItemsParams {
-  final String name;
+  final String query;
   final int from;
   final int limit;
 
   const new({
-    required this.name,
+    required this.query,
     required this.from,
     required this.limit,
   });
@@ -23,7 +23,7 @@ class SearchItemsUseCase
   @override
   Future<List<Item>> execute(SearchItemsParams input) {
     return _itemRepository.searchItems(
-      name: input.name,
+      query: input.query,
       from: input.from,
       limit: input.limit,
     );

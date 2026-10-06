@@ -112,7 +112,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
   Future<List<Item>> _fetchPage(String query, {required int from}) {
     return _searchItemsUseCase.execute(
-      SearchItemsParams(name: query, from: from, limit: _pageSize),
+      SearchItemsParams(query: query, from: from, limit: _pageSize),
     );
   }
 }
