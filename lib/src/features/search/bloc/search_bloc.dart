@@ -2,6 +2,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/domain.dart';
+import 'query_history.dart';
 
 part 'search_event.dart';
 part 'search_state.dart';
@@ -10,12 +11,16 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   static const int _pageSize = 20;
 
   final SearchItemsUseCase _searchItemsUseCase;
+  final QueryHistory _history = QueryHistory();
+
+  String _input = '';
 
   SearchBloc({
     required SearchItemsUseCase searchItemsUseCase,
   }) : _searchItemsUseCase = searchItemsUseCase,
        super(const SearchState.initial()) {
     on<UpdateSearchString>(_onUpdateSearchString, transformer: restartable());
+    on<UpdateSuggestions>(_onUpdateSuggestions);
     on<LoadNextPage>(_onLoadNextPage, transformer: droppable());
     on<RetrySearch>(_onRetrySearch, transformer: droppable());
   }
@@ -24,24 +29,36 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     UpdateSearchString event,
     Emitter<SearchState> emit,
   ) async {
-    final String query = event.searchString.trim();
+    final String query = QueryHistory.normalize(event.searchString);
 
     if (query.isEmpty) {
-      emit(const SearchState.initial());
+      emit(_resetState());
+      return;
+    }
+
+    // The first page for this query has already settled, nothing to refetch.
+    if (query == state.query &&
+        (state.items.isNotEmpty || state.status == SearchStatus.success)) {
       return;
     }
 
     await _loadFirstPage(query, emit);
   }
 
+  void _onUpdateSuggestions(
+    UpdateSuggestions event,
+    Emitter<SearchState> emit,
+  ) {
+    _input = event.input;
+    emit(state.copyWith(suggestions: _history.suggest(_input)));
+  }
+
   Future<void> _onLoadNextPage(
     LoadNextPage event,
     Emitter<SearchState> emit,
   ) async {
-    if (state.isLoading ||
-        state.isLoadingMore ||
+    if (state.status != SearchStatus.success ||
         state.hasReachedEnd ||
-        state.hasError ||
         state.query.isEmpty) {
       return;
     }
@@ -53,6 +70,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     RetrySearch event,
     Emitter<SearchState> emit,
   ) async {
+    if (state.status != SearchStatus.failure) return;
+
     if (state.items.isEmpty) {
       await _loadFirstPage(state.query, emit);
     } else {
@@ -64,30 +83,33 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     String query,
     Emitter<SearchState> emit,
   ) async {
-    emit(const SearchState.initial().copyWith(query: query, isLoading: true));
+    emit(_resetState().copyWith(query: query, status: SearchStatus.loading));
 
     try {
       final List<Item> items = await _fetchPage(query, from: 0);
       if (state.query != query) return;
 
+      if (items.isNotEmpty) _history.save(query);
+
       emit(
         state.copyWith(
           items: items,
-          isLoading: false,
+          status: SearchStatus.success,
           hasReachedEnd: items.length < _pageSize,
+          suggestions: _history.suggest(_input),
         ),
       );
     } catch (_) {
       if (state.query != query) return;
 
-      emit(state.copyWith(isLoading: false, hasError: true));
+      emit(state.copyWith(status: SearchStatus.failure));
     }
   }
 
   Future<void> _loadNextPage(Emitter<SearchState> emit) async {
     final String query = state.query;
 
-    emit(state.copyWith(isLoadingMore: true, hasError: false));
+    emit(state.copyWith(status: SearchStatus.loadingMore));
 
     try {
       final List<Item> items = await _fetchPage(
@@ -99,14 +121,14 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       emit(
         state.copyWith(
           items: <Item>[...state.items, ...items],
-          isLoadingMore: false,
+          status: SearchStatus.success,
           hasReachedEnd: items.length < _pageSize,
         ),
       );
     } catch (_) {
       if (state.query != query) return;
 
-      emit(state.copyWith(isLoadingMore: false, hasError: true));
+      emit(state.copyWith(status: SearchStatus.failure));
     }
   }
 
@@ -114,5 +136,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     return _searchItemsUseCase.execute(
       SearchItemsParams(query: query, from: from, limit: _pageSize),
     );
+  }
+
+  SearchState _resetState() {
+    return const SearchState.initial().copyWith(suggestions: state.suggestions);
   }
 }

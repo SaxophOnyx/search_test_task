@@ -39,7 +39,11 @@ class _SearchContentState extends State<SearchContent> {
     }
   }
 
-  void _onSearchChanged(String value) {
+  void _onInputChanged(String value) {
+    context.read<SearchBloc>().add(UpdateSuggestions(input: value));
+  }
+
+  void _onSearch(String value) {
     context.read<SearchBloc>().add(UpdateSearchString(searchString: value));
   }
 
@@ -52,35 +56,50 @@ class _SearchContentState extends State<SearchContent> {
     return Scaffold(
       body: CustomScrollView(
         controller: _scrollController,
+        keyboardDismissBehavior: .onDrag,
         slivers: <Widget>[
           SliverAppBar(
             floating: true,
-            title: SearchField(onChanged: _onSearchChanged),
+            title: BlocSelector<SearchBloc, SearchState, List<String>>(
+              selector: (SearchState state) => state.suggestions,
+              builder: (BuildContext context, List<String> suggestions) {
+                return SearchField(
+                  suggestions: suggestions,
+                  onChanged: _onInputChanged,
+                  onSearch: _onSearch,
+                );
+              },
+            ),
           ),
           BlocBuilder<SearchBloc, SearchState>(
             builder: (BuildContext context, SearchState state) {
+              final bool hasError = state.status == SearchStatus.failure;
+
               if (state.items.isEmpty) {
-                if (state.isLoading) {
+                if (state.status == SearchStatus.loading) {
                   return const StatusSliver.loading();
                 }
 
                 return StatusSliver.message(
                   message: switch (state) {
-                    SearchState(hasError: true) => 'Something went wrong',
+                    _ when hasError => 'Something went wrong',
                     SearchState(query: '') => 'Type to search',
                     _ => 'No items found',
                   },
-                  onPressed: state.hasError ? _onRetry : null,
+                  onPressed: hasError ? _onRetry : null,
                 );
               }
 
-              final bool showFooter = state.isLoadingMore || state.hasError;
+              final bool showFooter =
+                  hasError || state.status == SearchStatus.loadingMore;
 
               return SliverList.separated(
                 itemCount: state.items.length + (showFooter ? 1 : 0),
                 itemBuilder: (BuildContext context, int index) {
                   if (index == state.items.length) {
-                    return state.hasError ? ErrorTile(onRetry: _onRetry) : const LoadingTile();
+                    return hasError
+                        ? ErrorTile(onRetry: _onRetry)
+                        : const LoadingTile();
                   }
 
                   return ItemTile(item: state.items[index], index: index);

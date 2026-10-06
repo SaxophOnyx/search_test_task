@@ -10,6 +10,12 @@ final class UpdateSearchString extends SearchEvent {
   const new({required this.searchString});
 }
 
+final class UpdateSuggestions extends SearchEvent {
+  final String input;
+
+  const new({required this.input});
+}
+
 final class LoadNextPage extends SearchEvent {
   const new();
 }

@@ -1,45 +1,42 @@
 part of 'search_bloc.dart';
 
+enum SearchStatus { idle, loading, loadingMore, success, failure }
+
 class SearchState {
   final String query;
   final List<Item> items;
-  final bool isLoading;
-  final bool isLoadingMore;
+  final SearchStatus status;
   final bool hasReachedEnd;
-  final bool hasError;
+  final List<String> suggestions;
 
   const SearchState({
     required this.query,
     required this.items,
-    required this.isLoading,
-    required this.isLoadingMore,
+    required this.status,
     required this.hasReachedEnd,
-    required this.hasError,
+    required this.suggestions,
   });
 
   const SearchState.initial()
     : query = '',
       items = const <Item>[],
-      isLoading = false,
-      isLoadingMore = false,
+      status = SearchStatus.idle,
       hasReachedEnd = false,
-      hasError = false;
+      suggestions = const <String>[];
 
   SearchState copyWith({
     String? query,
     List<Item>? items,
-    bool? isLoading,
-    bool? isLoadingMore,
+    SearchStatus? status,
     bool? hasReachedEnd,
-    bool? hasError,
+    List<String>? suggestions,
   }) {
     return SearchState(
       query: query ?? this.query,
       items: items ?? this.items,
-      isLoading: isLoading ?? this.isLoading,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      status: status ?? this.status,
       hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
-      hasError: hasError ?? this.hasError,
+      suggestions: suggestions ?? this.suggestions,
     );
   }
 }
