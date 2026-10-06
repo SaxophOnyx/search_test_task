@@ -1,7 +1,7 @@
 part of 'search_bloc.dart';
 
 sealed class SearchEvent {
-  const SearchEvent();
+  const new();
 }
 
 final class UpdateSearchString extends SearchEvent {
