@@ -9,3 +9,11 @@ final class UpdateSearchString extends SearchEvent {
 
   const new({required this.searchString});
 }
+
+final class LoadNextPage extends SearchEvent {
+  const new();
+}
+
+final class RetrySearch extends SearchEvent {
+  const new();
+}

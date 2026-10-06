@@ -15,13 +15,29 @@ class SearchContent extends StatefulWidget {
 
 class _SearchContentState extends State<SearchContent> {
   static const Duration _debounceDuration = Duration(milliseconds: 300);
+  static const double _loadMoreThreshold = 200;
 
+  final ScrollController _scrollController = ScrollController();
   Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    final ScrollPosition position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
+      context.read<SearchBloc>().add(const LoadNextPage());
+    }
   }
 
   void _onSearchChanged(String value) {
@@ -35,6 +51,7 @@ class _SearchContentState extends State<SearchContent> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: <Widget>[
           SliverAppBar(
             floating: true,
@@ -57,9 +74,28 @@ class _SearchContentState extends State<SearchContent> {
                 );
               }
 
+              final bool showFooter = state.isLoadingMore || state.hasError;
+
               return SliverList.separated(
-                itemCount: state.items.length,
+                itemCount: state.items.length + (showFooter ? 1 : 0),
                 itemBuilder: (BuildContext context, int index) {
+                  if (index == state.items.length) {
+                    return state.hasError
+                        ? ListTile(
+                            title: const Text('Something went wrong'),
+                            trailing: TextButton(
+                              onPressed: () => context.read<SearchBloc>().add(
+                                const RetrySearch(),
+                              ),
+                              child: const Text('Retry'),
+                            ),
+                          )
+                        : const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                  }
+
                   final Item item = state.items[index];
                   return ListTile(
                     leading: Text('$index'),

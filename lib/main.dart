@@ -5,4 +5,3 @@ import 'src/search_app.dart';
 void main() {
   runApp(const SearchApp());
 }
-
