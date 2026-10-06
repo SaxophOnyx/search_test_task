@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/search_bloc.dart';
+import '../mappers/search_exception_mapper.dart';
 import '../widgets/error_tile.dart';
 import '../widgets/item_tile.dart';
 import '../widgets/loading_tile.dart';
@@ -73,7 +74,10 @@ class _SearchContentState extends State<SearchContent> {
           ),
           BlocBuilder<SearchBloc, SearchState>(
             builder: (BuildContext context, SearchState state) {
-              final bool hasError = state.status == SearchStatus.failure;
+              final Exception? exception = state.exception;
+              final String? errorMessage = exception == null
+                  ? null
+                  : SearchExceptionMapper.toMessage(exception);
 
               if (state.items.isEmpty) {
                 if (state.status == SearchStatus.loading) {
@@ -82,23 +86,24 @@ class _SearchContentState extends State<SearchContent> {
 
                 return StatusSliver.message(
                   message: switch (state) {
-                    _ when hasError => 'Something went wrong',
+                    _ when errorMessage != null => errorMessage,
                     SearchState(query: '') => 'Type to search',
                     _ => 'No items found',
                   },
-                  onPressed: hasError ? _onRetry : null,
+                  onPressed: errorMessage != null ? _onRetry : null,
                 );
               }
 
               final bool showFooter =
-                  hasError || state.status == SearchStatus.loadingMore;
+                  errorMessage != null ||
+                  state.status == SearchStatus.loadingMore;
 
               return SliverList.separated(
                 itemCount: state.items.length + (showFooter ? 1 : 0),
                 itemBuilder: (BuildContext context, int index) {
                   if (index == state.items.length) {
-                    return hasError
-                        ? ErrorTile(onRetry: _onRetry)
+                    return errorMessage != null
+                        ? ErrorTile(message: errorMessage, onRetry: _onRetry)
                         : const LoadingTile();
                   }
 

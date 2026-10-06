@@ -36,7 +36,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       return;
     }
 
-    // The first page for this query has already settled, nothing to refetch.
     if (query == state.query &&
         (state.items.isNotEmpty || state.status == SearchStatus.success)) {
       return;
@@ -99,17 +98,19 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           suggestions: _history.suggest(_input),
         ),
       );
-    } catch (_) {
+    } on Exception catch (exception) {
       if (state.query != query) return;
 
-      emit(state.copyWith(status: SearchStatus.failure));
+      emit(
+        state.copyWith(status: SearchStatus.failure, exception: exception),
+      );
     }
   }
 
   Future<void> _loadNextPage(Emitter<SearchState> emit) async {
     final String query = state.query;
 
-    emit(state.copyWith(status: SearchStatus.loadingMore));
+    emit(state.copyWith(status: SearchStatus.loadingMore, exception: null));
 
     try {
       final List<Item> items = await _fetchPage(
@@ -125,10 +126,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           hasReachedEnd: items.length < _pageSize,
         ),
       );
-    } catch (_) {
+    } on Exception catch (exception) {
       if (state.query != query) return;
 
-      emit(state.copyWith(status: SearchStatus.failure));
+      emit(
+        state.copyWith(status: SearchStatus.failure, exception: exception),
+      );
     }
   }
 
