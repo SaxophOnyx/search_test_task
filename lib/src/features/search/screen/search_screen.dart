@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/core.dart';
 import '../../../domain/domain.dart';
+import '../bloc/query_history.dart';
 import '../bloc/search_bloc.dart';
 import 'search_content.dart';
 
@@ -14,6 +15,7 @@ class SearchScreen extends StatelessWidget {
     return BlocProvider<SearchBloc>(
       create: (_) => SearchBloc(
         searchItemsUseCase: AppDi.locator<SearchItemsUseCase>(),
+        queryHistory: QueryHistory(),
       ),
       child: const SearchContent(),
     );

@@ -12,13 +12,13 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   static const int _pageSize = 20;
 
   final SearchItemsUseCase _searchItemsUseCase;
-  final QueryHistory _history = QueryHistory();
+  final QueryHistory _history;
 
-  String _input = '';
-
-  SearchBloc({
+  new({
     required SearchItemsUseCase searchItemsUseCase,
+    required QueryHistory queryHistory,
   }) : _searchItemsUseCase = searchItemsUseCase,
+       _history = queryHistory,
        super(const SearchState.initial()) {
     on<UpdateSearchString>(_onUpdateSearchString, transformer: restartable());
     on<UpdateSuggestions>(_onUpdateSuggestions);
@@ -33,116 +33,96 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     final String query = QueryHistory.normalize(event.searchString);
 
     if (query.isEmpty) {
-      emit(_resetState());
+      emit(SearchState.initial(suggestions: state.suggestions));
       return;
     }
 
-    if (query == state.query &&
-        (state.items.isNotEmpty || state.status == SearchStatus.success)) {
+    if (query == state.query && (state.items.isNotEmpty || state.status == .success)) {
       return;
     }
 
-    await _loadFirstPage(query, emit);
+    emit(
+      SearchState.initial(
+        suggestions: state.suggestions,
+      ).copyWith(query: query, status: .loading),
+    );
+
+    await _fetchPage(emit);
   }
 
   void _onUpdateSuggestions(
     UpdateSuggestions event,
     Emitter<SearchState> emit,
   ) {
-    _input = event.input;
-    emit(state.copyWith(suggestions: _history.suggest(_input)));
+    emit(state.copyWith(suggestions: _history.suggest(event.input)));
   }
 
   Future<void> _onLoadNextPage(
     LoadNextPage event,
     Emitter<SearchState> emit,
   ) async {
-    if (state.status != SearchStatus.success ||
-        state.hasReachedEnd ||
-        state.query.isEmpty) {
+    if (state.status != .success || state.hasReachedEnd) {
       return;
     }
 
-    await _loadNextPage(emit);
+    emit(
+      state.copyWith(
+        status: .loadingMore,
+        exception: null,
+      ),
+    );
+
+    await _fetchPage(emit);
   }
 
   Future<void> _onRetrySearch(
     RetrySearch event,
     Emitter<SearchState> emit,
   ) async {
-    if (state.status != SearchStatus.failure) return;
-
-    if (state.items.isEmpty) {
-      await _loadFirstPage(state.query, emit);
-    } else {
-      await _loadNextPage(emit);
+    if (state.status != .failure) {
+      return;
     }
-  }
 
-  Future<void> _loadFirstPage(
-    String query,
-    Emitter<SearchState> emit,
-  ) async {
-    emit(_resetState().copyWith(query: query, status: SearchStatus.loading));
-
-    try {
-      final List<Item> items = await _fetchPage(query, from: 0);
-      if (state.query != query) return;
-
-      if (items.isNotEmpty) _history.save(query);
-
-      emit(
-        state.copyWith(
-          items: items,
-          status: SearchStatus.success,
-          hasReachedEnd: items.length < _pageSize,
-          suggestions: _history.suggest(_input),
-        ),
-      );
-    } on AppException catch (exception) {
-      if (state.query != query) return;
-
-      emit(
-        state.copyWith(status: SearchStatus.failure, exception: exception),
-      );
-    }
-  }
-
-  Future<void> _loadNextPage(Emitter<SearchState> emit) async {
-    final String query = state.query;
-
-    emit(state.copyWith(status: SearchStatus.loadingMore, exception: null));
-
-    try {
-      final List<Item> items = await _fetchPage(
-        query,
-        from: state.items.length,
-      );
-      if (state.query != query) return;
-
-      emit(
-        state.copyWith(
-          items: <Item>[...state.items, ...items],
-          status: SearchStatus.success,
-          hasReachedEnd: items.length < _pageSize,
-        ),
-      );
-    } on AppException catch (exception) {
-      if (state.query != query) return;
-
-      emit(
-        state.copyWith(status: SearchStatus.failure, exception: exception),
-      );
-    }
-  }
-
-  Future<List<Item>> _fetchPage(String query, {required int from}) {
-    return _searchItemsUseCase.execute(
-      SearchItemsParams(query: query, from: from, limit: _pageSize),
+    emit(
+      state.copyWith(
+        status: state.items.isEmpty ? .loading : .loadingMore,
+        exception: null,
+      ),
     );
+
+    await _fetchPage(emit);
   }
 
-  SearchState _resetState() {
-    return const SearchState.initial().copyWith(suggestions: state.suggestions);
+  Future<void> _fetchPage(Emitter<SearchState> emit) async {
+    final String query = state.query;
+    final List<Item> loaded = state.items;
+
+    try {
+      final List<Item> page = await _searchItemsUseCase.execute(
+        SearchItemsParams(query: query, from: loaded.length, limit: _pageSize),
+      );
+
+      if (isClosed || state.query != query) {
+        return;
+      }
+
+      if (loaded.isEmpty && page.isNotEmpty) {
+        _history.save(query);
+      }
+
+      emit(
+        state.copyWith(
+          items: <Item>[...loaded, ...page],
+          status: .success,
+          hasReachedEnd: page.length < _pageSize,
+        ),
+      );
+    } on AppException catch (exception) {
+      if (isClosed || state.query != query) {
+        return;
+      }
+
+      emit(state.copyWith(status: .failure, exception: exception));
+    }
   }
 }

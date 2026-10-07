@@ -11,7 +11,6 @@ final class SearchExceptionMapper {
       LimitReachedException() => 'Too many requests. Try again in a moment',
       FetchFailedException() => 'Couldn\'t load results. Check your connection',
       UnknownException() => _unknownMessage,
-      // AppException isn't sealed, so subtypes added later land here.
       _ => _unknownMessage,
     };
   }

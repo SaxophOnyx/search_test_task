@@ -2,7 +2,7 @@ part of 'search_bloc.dart';
 
 enum SearchStatus { idle, loading, loadingMore, success, failure }
 
-class SearchState {
+final class SearchState {
   final String query;
   final List<Item> items;
   final SearchStatus status;
@@ -12,7 +12,7 @@ class SearchState {
 
   static const Object _unset = Object();
 
-  const SearchState({
+  const new({
     required this.query,
     required this.items,
     required this.status,
@@ -21,13 +21,13 @@ class SearchState {
     required this.exception,
   });
 
-  const SearchState.initial()
-    : query = '',
-      items = const <Item>[],
-      status = SearchStatus.idle,
-      hasReachedEnd = false,
-      suggestions = const <String>[],
-      exception = null;
+  const SearchState.initial({
+    this.suggestions = const <String>[],
+  }) : query = '',
+       items = const <Item>[],
+       status = .idle,
+       hasReachedEnd = false,
+       exception = null;
 
   SearchState copyWith({
     String? query,
