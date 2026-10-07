@@ -118,13 +118,14 @@ void main() {
   void stubSearch(
     Future<List<Item>> Function(SearchItemsParams params) answer,
   ) {
-    when(() => useCase.execute(any())).thenAnswer((Invocation invocation) async {
-      final List<Item> page = await answer(
-        invocation.positionalArguments.single as SearchItemsParams,
-      );
-      served.add(page);
-      return page;
-    });
+    when(() => useCase.execute(any()))
+        .thenAnswer((Invocation invocation) async {
+          final List<Item> page = await answer(
+            invocation.positionalArguments.single as SearchItemsParams,
+          );
+          served.add(page);
+          return page;
+        });
   }
 
   Future<List<Item>> fullPage(SearchItemsParams params) async {
@@ -347,7 +348,7 @@ void main() {
         ('an empty result', seeded(hasReachedEnd: true)),
         (
           'results while the next page loads',
-          seeded(items: loaded, status: .loadingMore),
+          seeded(items: loaded, status: .loading),
         ),
         (
           'results whose next page failed',
@@ -578,7 +579,7 @@ void main() {
         ('the first page is loading', seeded(status: .loading)),
         (
           'the next page is already loading',
-          seeded(items: loaded, status: .loadingMore),
+          seeded(items: loaded, status: .loading),
         ),
         (
           'the last request failed',
@@ -603,13 +604,13 @@ void main() {
       }
 
       blocTest<SearchBloc, SearchState>(
-        'emits loadingMore, then appends the next page',
+        'emits loading, then appends the next page',
         setUp: () => stubSearch(fullPage),
         build: build,
         seed: () => seeded(items: loaded),
         act: (SearchBloc bloc) => bloc.add(const LoadNextPage()),
         expect: () => <Matcher>[
-          isState(status: .loadingMore, query: 'flutter', items: loaded),
+          isState(status: .loading, query: 'flutter', items: loaded),
           isState(
             status: .success,
             query: 'flutter',
@@ -632,7 +633,7 @@ void main() {
         seed: () => seeded(items: loaded),
         act: (SearchBloc bloc) => bloc.add(const LoadNextPage()),
         expect: () => <Matcher>[
-          isState(status: .loadingMore),
+          isState(status: .loading),
           isState(
             status: .success,
             items: <Item>[...loaded, ...served.single],
@@ -648,7 +649,7 @@ void main() {
         seed: () => seeded(items: loaded),
         act: (SearchBloc bloc) => bloc.add(const LoadNextPage()),
         expect: () => <Matcher>[
-          isState(status: .loadingMore),
+          isState(status: .loading),
           isState(status: .success, items: loaded, hasReachedEnd: true),
         ],
       );
@@ -660,7 +661,7 @@ void main() {
         seed: () => seeded(items: loaded),
         act: (SearchBloc bloc) => bloc.add(const LoadNextPage()),
         expect: () => <Matcher>[
-          isState(status: .loadingMore, items: loaded),
+          isState(status: .loading, items: loaded),
           isState(
             status: .failure,
             query: 'flutter',
@@ -686,7 +687,7 @@ void main() {
           await pumpEventQueue();
         },
         expect: () => <Matcher>[
-          isState(status: .loadingMore),
+          isState(status: .loading),
           isState(status: .success, items: <Item>[...loaded, ...served.single]),
         ],
         verify: (SearchBloc _) {
@@ -732,7 +733,7 @@ void main() {
             await pumpEventQueue();
           },
           expect: () => <Matcher>[
-            isState(status: .loadingMore, query: 'flutter'),
+            isState(status: .loading, query: 'flutter'),
             isState(status: .loading, query: 'dart', items: const <Item>[]),
             isState(status: .success, query: 'dart', items: fresh),
           ],
@@ -753,7 +754,7 @@ void main() {
           await pumpEventQueue();
         },
         expect: () => <Matcher>[
-          isState(status: .loadingMore, query: 'flutter'),
+          isState(status: .loading, query: 'flutter'),
           isState(status: .loading, query: 'dart', exception: isNull),
         ],
       );
@@ -772,7 +773,7 @@ void main() {
           await pumpEventQueue();
         },
         expect: () => <Matcher>[
-          isState(status: .loadingMore),
+          isState(status: .loading),
           isState(status: .idle, query: '', items: const <Item>[]),
         ],
       );
@@ -791,7 +792,7 @@ void main() {
       final List<(String, SearchState)> nothingFailed = <(String, SearchState)>[
         ('idle', const SearchState.initial()),
         ('loading', seeded(status: .loading)),
-        ('loading more', seeded(items: loaded, status: .loadingMore)),
+        ('loading more', seeded(items: loaded, status: .loading)),
         ('showing results', seeded(items: loaded)),
       ];
 
@@ -843,7 +844,7 @@ void main() {
         ),
         act: (SearchBloc bloc) => bloc.add(const RetrySearch()),
         expect: () => <Matcher>[
-          isState(status: .loadingMore, items: loaded, exception: isNull),
+          isState(status: .loading, items: loaded, exception: isNull),
           isState(
             status: .success,
             items: <Item>[...loaded, ...served.single],
@@ -937,16 +938,19 @@ void main() {
             ),
             (
               'fails',
-              (Completer<List<Item>> c) => c.completeError(const FetchFailedException()),
+              (Completer<List<Item>> c) =>
+                  c.completeError(const FetchFailedException()),
             ),
           ];
 
-      for (final (String name, void Function(Completer<List<Item>>) resolve) in outcomes) {
+      for (final (String name, void Function(Completer<List<Item>>) resolve)
+          in outcomes) {
         test('ignores a request that $name after the bloc is closed', () async {
           stubPending();
           final SearchBloc bloc = build();
           final List<SearchState> states = <SearchState>[];
-          final StreamSubscription<SearchState> subscription = bloc.stream.listen(states.add);
+          final StreamSubscription<SearchState> subscription = bloc.stream
+              .listen(states.add);
 
           bloc.add(const UpdateSearchString(searchString: 'flutter'));
           await pumpEventQueue();

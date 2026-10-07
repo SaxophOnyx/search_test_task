@@ -72,7 +72,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     emit(
       state.copyWith(
-        status: .loadingMore,
+        status: .loading,
         exception: null,
       ),
     );
@@ -90,7 +90,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     emit(
       state.copyWith(
-        status: state.items.isEmpty ? .loading : .loadingMore,
+        status: .loading,
         exception: null,
       ),
     );
