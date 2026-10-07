@@ -122,7 +122,12 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         return;
       }
 
-      emit(state.copyWith(status: .failure, exception: exception));
+      emit(
+        state.copyWith(
+          status: .failure,
+          exception: exception,
+        ),
+      );
     }
   }
 }
