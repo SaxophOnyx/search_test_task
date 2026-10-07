@@ -10,7 +10,6 @@ final class DataDi {
 
   static void initDependencies(GetIt locator) {
     _initNetwork(locator);
-    _initGuards(locator);
     _initProviders(locator);
     _initRepositories(locator);
   }
@@ -29,12 +28,8 @@ final class DataDi {
       }
       return dio;
     });
-  }
 
-  static void _initGuards(GetIt locator) {
-    locator.registerLazySingleton<ApiGuard>(
-      () => const ApiGuard(),
-    );
+    locator.registerLazySingleton<ApiGuard>(() => const ApiGuard());
   }
 
   static void _initProviders(GetIt locator) {

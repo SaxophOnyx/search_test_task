@@ -53,4 +53,7 @@ These were skipped because of the project's scale:
 
 - **Query history is in-memory only.** It isn't kept between launches.
 - **Layer boundaries are a convention.** Folders don't stop one layer importing another.
+- **Data-layer error handling is simplified.** There's no reusable `HttpGuardedProvider` base
+  class that bundles the base URL, auth and error handling. The single provider wraps its calls in
+  an injected `ApiGuard`, and the repository turns anything unexpected into `UnknownException`.
 - **Localization**. App uses hardcoded string for now.
