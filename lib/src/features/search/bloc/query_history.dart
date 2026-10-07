@@ -3,7 +3,10 @@ class QueryHistory {
   static const int _minKeyLength = 2;
 
   static final RegExp _whitespace = RegExp(r'\s+');
-  static final RegExp _wordSeparator = RegExp(r'[^\p{L}\p{N}]+', unicode: true);
+  static final RegExp _wordSeparator = RegExp(
+    r'[^\p{L}\p{M}\p{N}]+',
+    unicode: true,
+  );
 
   final List<_HistoryEntry> _entries = <_HistoryEntry>[];
 
@@ -11,9 +14,7 @@ class QueryHistory {
     final _HistoryEntry entry = _HistoryEntry.create(query);
     if (entry.key.length < _minKeyLength || entry.words.isEmpty) return;
 
-    _entries.removeWhere(
-      (_HistoryEntry e) => e.wordSetKey == entry.wordSetKey,
-    );
+    _entries.removeWhere((_HistoryEntry e) => e.key == entry.key);
     _entries.insert(0, entry);
 
     if (_entries.length > _maxEntries) {
@@ -25,11 +26,11 @@ class QueryHistory {
     final _HistoryEntry probe = _HistoryEntry.create(input);
 
     if (probe.words.isEmpty) {
-      return _entries
-          .take(limit)
-          .map((_HistoryEntry e) => e.query)
-          .toList(growable: false);
+      return _entries.take(limit).map((_HistoryEntry e) => e.query).toList(growable: false);
     }
+
+    final bool isLastWordComplete = input.trimRight().length != input.length;
+    final String prefix = isLastWordComplete ? '${probe.key} ' : probe.key;
 
     final List<String> prefixMatches = <String>[];
     final List<String> wordMatches = <String>[];
@@ -37,9 +38,10 @@ class QueryHistory {
     for (final _HistoryEntry entry in _entries) {
       if (entry.key == probe.key) continue;
 
-      if (entry.key.startsWith(probe.key)) {
+      if (entry.key.startsWith(prefix)) {
         prefixMatches.add(entry.query);
-      } else if (probe.words.every(entry.hasWordWithPrefix)) {
+      } else if (probe.words.every(entry.hasWordWithPrefix) &&
+          (!isLastWordComplete || entry.words.contains(probe.words.last))) {
         wordMatches.add(entry.query);
       }
 
@@ -61,13 +63,11 @@ class _HistoryEntry {
   final String query;
   final String key;
   final List<String> words;
-  final String wordSetKey;
 
   const new({
     required this.query,
     required this.key,
     required this.words,
-    required this.wordSetKey,
   });
 
   factory _HistoryEntry.create(String rawQuery) {
@@ -77,13 +77,11 @@ class _HistoryEntry {
         .split(QueryHistory._wordSeparator)
         .where((String w) => w.isNotEmpty)
         .toList(growable: false);
-    final List<String> sortedWords = <String>[...words.toSet()]..sort();
 
     return _HistoryEntry(
       query: query,
       key: key,
       words: words,
-      wordSetKey: sortedWords.join(' '),
     );
   }
 

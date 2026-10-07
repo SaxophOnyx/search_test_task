@@ -29,7 +29,6 @@ class _SearchFieldState extends State<SearchField> {
   final LayerLink _layerLink = LayerLink();
 
   Timer? _debounce;
-  double _fieldWidth = 0;
 
   @override
   void initState() {
@@ -80,13 +79,33 @@ class _SearchFieldState extends State<SearchField> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        _fieldWidth = constraints.maxWidth;
-
         return CompositedTransformTarget(
           link: _layerLink,
           child: OverlayPortal(
             controller: _overlayController,
-            overlayChildBuilder: _buildSuggestions,
+            overlayChildBuilder: (BuildContext context) {
+              if (widget.suggestions.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              return Align(
+                alignment: .topLeft,
+                child: CompositedTransformFollower(
+                  link: _layerLink,
+                  showWhenUnlinked: false,
+                  targetAnchor: .bottomLeft,
+                  child: TextFieldTapRegion(
+                    child: SizedBox(
+                      width: constraints.maxWidth,
+                      child: SuggestionList(
+                        suggestions: widget.suggestions,
+                        onSelected: _onSuggestionSelected,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
             child: TextField(
               controller: _controller,
               focusNode: _focusNode,
@@ -103,28 +122,6 @@ class _SearchFieldState extends State<SearchField> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildSuggestions(BuildContext context) {
-    if (widget.suggestions.isEmpty) return const SizedBox.shrink();
-
-    return Align(
-      alignment: .topLeft,
-      child: CompositedTransformFollower(
-        link: _layerLink,
-        showWhenUnlinked: false,
-        targetAnchor: .bottomLeft,
-        child: TextFieldTapRegion(
-          child: SizedBox(
-            width: _fieldWidth,
-            child: SuggestionList(
-              suggestions: widget.suggestions,
-              onSelected: _onSuggestionSelected,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
