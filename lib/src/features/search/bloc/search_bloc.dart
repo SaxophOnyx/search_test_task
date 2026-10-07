@@ -1,6 +1,7 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/core.dart';
 import '../../../domain/domain.dart';
 import 'query_history.dart';
 
@@ -98,7 +99,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           suggestions: _history.suggest(_input),
         ),
       );
-    } on Exception catch (exception) {
+    } on AppException catch (exception) {
       if (state.query != query) return;
 
       emit(
@@ -126,7 +127,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           hasReachedEnd: items.length < _pageSize,
         ),
       );
-    } on Exception catch (exception) {
+    } on AppException catch (exception) {
       if (state.query != query) return;
 
       emit(

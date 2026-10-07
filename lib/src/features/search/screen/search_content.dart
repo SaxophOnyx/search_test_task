@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/core.dart';
 import '../bloc/search_bloc.dart';
 import '../mappers/search_exception_mapper.dart';
 import '../widgets/error_tile.dart';
@@ -74,7 +75,7 @@ class _SearchContentState extends State<SearchContent> {
           ),
           BlocBuilder<SearchBloc, SearchState>(
             builder: (BuildContext context, SearchState state) {
-              final Exception? exception = state.exception;
+              final AppException? exception = state.exception;
               final String? errorMessage = exception == null
                   ? null
                   : SearchExceptionMapper.toMessage(exception);

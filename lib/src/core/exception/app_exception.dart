@@ -1,5 +1,3 @@
-class AppException implements Exception {
+abstract class AppException implements Exception {
   const new();
-
-  const AppException.unknown();
 }

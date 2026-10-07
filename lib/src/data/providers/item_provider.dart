@@ -14,20 +14,17 @@ class ItemProvider {
     required int from,
     required int limit,
   }) async {
-    final Response<Map<String, dynamic>> response = await _dio
-        .get<Map<String, dynamic>>(
-          ApiConstants.searchPath,
-          queryParameters: <String, dynamic>{
-            ApiConstants.queryParam: query,
-            ApiConstants.tagsParam: ApiConstants.storyTag,
-            ApiConstants.offsetParam: from,
-            ApiConstants.lengthParam: limit,
-          },
-        );
-    final List<dynamic> hits =
-        response.data![ApiConstants.hitsKey] as List<dynamic>;
+    final Response<Map<String, dynamic>> response = await _dio.get<Map<String, dynamic>>(
+      ApiConstants.searchPath,
+      queryParameters: <String, dynamic>{
+        ApiConstants.queryParam: query,
+        ApiConstants.tagsParam: ApiConstants.storyTag,
+        ApiConstants.offsetParam: from,
+        ApiConstants.lengthParam: limit,
+      },
+    );
 
-    return hits
+    return (response.data![ApiConstants.hitsKey] as List<dynamic>)
         .map((dynamic e) => ItemEntity.fromJson(e as Map<String, dynamic>))
         .toList(growable: false);
   }

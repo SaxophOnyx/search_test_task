@@ -8,7 +8,7 @@ class SearchState {
   final SearchStatus status;
   final bool hasReachedEnd;
   final List<String> suggestions;
-  final Exception? exception;
+  final AppException? exception;
 
   static const Object _unset = Object();
 
@@ -37,7 +37,7 @@ class SearchState {
     List<String>? suggestions,
     Object? exception = _unset,
   }) {
-    assert(identical(exception, _unset) || exception is Exception?);
+    assert(identical(exception, _unset) || exception is AppException?);
 
     return SearchState(
       query: query ?? this.query,
@@ -45,7 +45,9 @@ class SearchState {
       status: status ?? this.status,
       hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
       suggestions: suggestions ?? this.suggestions,
-      exception: identical(exception, _unset) ? this.exception : exception as Exception?,
+      exception: identical(exception, _unset)
+          ? this.exception
+          : exception as AppException?,
     );
   }
 }

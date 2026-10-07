@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-import '../../core/core.dart';
 import '../../domain/domain.dart';
 import '../data.dart';
 
@@ -30,28 +29,12 @@ final class ItemRepositoryImpl implements ItemRepository {
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {
       return await call();
-    } on AppException {
-      rethrow;
     } on DioException catch (e) {
-      throw _mapDioException(e);
-    } on Exception {
-      throw const AppException.unknown();
+      throw e.response?.statusCode == 429
+          ? const LimitReachedException()
+          : const FetchFailedException();
+    } catch (_) {
+      throw const UnknownException();
     }
-  }
-
-  AppException _mapDioException(DioException e) {
-    return switch (e.type) {
-      DioExceptionType.badResponse => switch (e.response?.statusCode) {
-        429 => const LimitReachedException(),
-        final int code when code >= 400 && code < 600 =>
-          const FetchFailedException(),
-        _ => const AppException.unknown(),
-      },
-      DioExceptionType.connectionTimeout ||
-      DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout ||
-      DioExceptionType.connectionError => const FetchFailedException(),
-      _ => const AppException.unknown(),
-    };
   }
 }
