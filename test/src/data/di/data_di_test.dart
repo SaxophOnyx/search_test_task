@@ -22,6 +22,10 @@ void main() {
         expect(locator<Dio>().options.baseUrl, 'https://hn.algolia.com/api/v1');
       });
 
+      test('resolves ApiGuard', () {
+        expect(locator<ApiGuard>(), isA<ApiGuard>());
+      });
+
       test('resolves ItemRepository to ItemRepositoryImpl', () {
         expect(locator<ItemRepository>(), isA<ItemRepositoryImpl>());
       });

@@ -1,5 +1,4 @@
-import 'package:dio/dio.dart';
-
+import '../../core/core.dart';
 import '../../domain/domain.dart';
 import '../data.dart';
 
@@ -15,26 +14,18 @@ final class ItemRepositoryImpl implements ItemRepository {
     required String query,
     required int from,
     required int limit,
-  }) {
-    return _guard(() async {
+  }) async {
+    try {
       final List<ItemEntity> entities = await _itemProvider.searchItems(
         query: query,
         from: from,
         limit: limit,
       );
       return entities.map(ItemMapper.fromEntity).toList(growable: false);
-    });
-  }
-
-  Future<T> _guard<T>(Future<T> Function() call) async {
-    try {
-      return await call();
-    } on DioException catch (e) {
-      throw e.response?.statusCode == 429
-          ? const LimitReachedException()
-          : const FetchFailedException();
-    } catch (_) {
-      throw const UnknownException();
+    } on AppException {
+      rethrow;
+    } catch (_, stackTrace) {
+      Error.throwWithStackTrace(const UnknownException(), stackTrace);
     }
   }
 }

@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:search_test_task/src/data/data.dart';
@@ -9,22 +8,6 @@ class MockItemProvider extends Mock implements ItemProvider {}
 void main() {
   late MockItemProvider provider;
   late ItemRepositoryImpl repository;
-
-  final RequestOptions requestOptions = RequestOptions(
-    path: ApiConstants.searchPath,
-  );
-
-  DioException dioException({int? statusCode}) {
-    return DioException(
-      requestOptions: requestOptions,
-      response: statusCode == null
-          ? null
-          : Response<dynamic>(
-              requestOptions: requestOptions,
-              statusCode: statusCode,
-            ),
-    );
-  }
 
   void stubSearch(Future<List<ItemEntity>> Function() answer) {
     when(
@@ -69,37 +52,18 @@ void main() {
         expect(result.map((Item i) => i.title), <String>['First', 'Second']);
       });
 
-      final List<(String, Object, Matcher)> failures =
-          <(String, Object, Matcher)>[
-            (
-              'LimitReachedException on a 429 response',
-              dioException(statusCode: 429),
-              isA<LimitReachedException>(),
-            ),
-            (
-              'FetchFailedException on any other error status',
-              dioException(statusCode: 500),
-              isA<FetchFailedException>(),
-            ),
-            (
-              'FetchFailedException when Dio has no response',
-              dioException(),
-              isA<FetchFailedException>(),
-            ),
-            (
-              'UnknownException on a non-Dio error',
-              TypeError(),
-              isA<UnknownException>(),
-            ),
-          ];
+      test('rethrows AppException unchanged', () async {
+        const LimitReachedException exception = LimitReachedException();
+        stubSearch(() async => throw exception);
 
-      for (final (String name, Object error, Matcher matcher) in failures) {
-        test('throws $name', () async {
-          stubSearch(() async => throw error);
+        await expectLater(search(), throwsA(same(exception)));
+      });
 
-          await expectLater(search(), throwsA(matcher));
-        });
-      }
+      test('throws UnknownException on a non-AppException error', () async {
+        stubSearch(() async => throw StateError('unexpected'));
+
+        await expectLater(search(), throwsA(isA<UnknownException>()));
+      });
     });
   });
 }

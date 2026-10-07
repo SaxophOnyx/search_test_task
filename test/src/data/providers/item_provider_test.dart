@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:search_test_task/src/data/data.dart';
+import 'package:search_test_task/src/domain/domain.dart';
 
 class MockDio extends Mock implements Dio {}
 
@@ -43,7 +44,7 @@ void main() {
 
   setUp(() {
     dio = MockDio();
-    provider = ItemProvider(dio: dio);
+    provider = ItemProvider(dio: dio, guard: const ApiGuard());
   });
 
   group('ItemProvider', () {
@@ -79,13 +80,12 @@ void main() {
         expect(await search(), isEmpty);
       });
 
-      test('rethrows DioException unchanged', () async {
-        final DioException exception = DioException(
-          requestOptions: requestOptions,
+      test('throws FetchFailedException on DioException', () async {
+        stubGet(
+          () async => throw DioException(requestOptions: requestOptions),
         );
-        stubGet(() async => throw exception);
 
-        await expectLater(search(), throwsA(same(exception)));
+        await expectLater(search(), throwsA(isA<FetchFailedException>()));
       });
 
       final List<(String, Map<String, dynamic>?)> malformed =
@@ -101,10 +101,10 @@ void main() {
           ];
 
       for (final (String name, Map<String, dynamic>? data) in malformed) {
-        test('throws TypeError when $name', () async {
+        test('throws UnknownException when $name', () async {
           stubData(data);
 
-          await expectLater(search(), throwsA(isA<TypeError>()));
+          await expectLater(search(), throwsA(isA<UnknownException>()));
         });
       }
     });
