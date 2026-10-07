@@ -21,7 +21,7 @@ class SearchItemsUseCase
   }) : _itemRepository = itemRepository;
 
   @override
-  Future<List<Item>> execute(SearchItemsParams input) {
+  Future<List<Item>> execute(SearchItemsParams input) async {
     return _itemRepository.searchItems(
       query: input.query,
       from: input.from,
