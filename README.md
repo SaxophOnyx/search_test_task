@@ -26,6 +26,12 @@ sh prebuild.sh # run from the project root
 flutter run
 ```
 
+## Running tests
+
+```bash
+sh run_all_tests.sh # run from the project root
+```
+
 ## Stack
 
 - **State management:** flutter_bloc, bloc_concurrency
