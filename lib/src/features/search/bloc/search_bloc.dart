@@ -14,6 +14,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   final SearchItemsUseCase _searchItemsUseCase;
   final QueryHistory _history;
 
+  int _generation = 0;
+
   new({
     required SearchItemsUseCase searchItemsUseCase,
     required QueryHistory queryHistory,
@@ -33,14 +35,17 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     final String query = QueryHistory.normalize(event.searchString);
 
     if (query.isEmpty) {
+      _generation++;
       emit(SearchState.initial(suggestions: state.suggestions));
       return;
     }
 
-    if (query == state.query && (state.items.isNotEmpty || state.status == .success)) {
+    if (query == state.query &&
+        (state.items.isNotEmpty || state.status == .success)) {
       return;
     }
 
+    _generation++;
     emit(
       SearchState.initial(
         suggestions: state.suggestions,
@@ -96,13 +101,14 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   Future<void> _fetchPage(Emitter<SearchState> emit) async {
     final String query = state.query;
     final List<Item> loaded = state.items;
+    final int generation = _generation;
 
     try {
       final List<Item> page = await _searchItemsUseCase.execute(
         SearchItemsParams(query: query, from: loaded.length, limit: _pageSize),
       );
 
-      if (isClosed || state.query != query) {
+      if (isClosed || generation != _generation) {
         return;
       }
 
@@ -115,10 +121,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           items: <Item>[...loaded, ...page],
           status: .success,
           hasReachedEnd: page.length < _pageSize,
+          exception: null,
         ),
       );
     } on AppException catch (exception) {
-      if (isClosed || state.query != query) {
+      if (isClosed || generation != _generation) {
         return;
       }
 
