@@ -1,4 +1,4 @@
-import '../../../core/core.dart';
+import '../../../domain/domain.dart';
 
 final class SearchExceptionMapper {
   const SearchExceptionMapper._();
