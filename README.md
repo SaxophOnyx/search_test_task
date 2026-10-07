@@ -22,14 +22,14 @@ Each layer is a folder rather than a separate package, to keep a project this si
 Requires Flutter 3.47.2 / Dart ^3.13.2.
 
 ```bash
-sh prebuild.sh # run from the project root
+sh scripts/prebuild.sh
 flutter run
 ```
 
 ## Running tests
 
 ```bash
-sh run_all_tests.sh # run from the project root
+sh scripts/run_all_tests.sh
 ```
 
 ## Stack
