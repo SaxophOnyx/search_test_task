@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/domain.dart';
 import '../bloc/search_bloc.dart';
-import '../mappers/search_exception_mapper.dart';
+import '../services/search_exception_mapper.dart';
 import '../widgets/error_tile.dart';
 import '../widgets/item_tile.dart';
 import '../widgets/loading_tile.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:search_test_task/src/features/search/bloc/query_history.dart';
+import 'package:search_test_task/src/features/search/services/query_history.dart';
 
 void main() {
   late QueryHistory history;

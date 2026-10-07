@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:search_test_task/src/core/core.dart';
 import 'package:search_test_task/src/domain/domain.dart';
-import 'package:search_test_task/src/features/search/bloc/query_history.dart';
 import 'package:search_test_task/src/features/search/bloc/search_bloc.dart';
+import 'package:search_test_task/src/features/search/services/query_history.dart';
 
 class MockSearchItemsUseCase extends Mock implements SearchItemsUseCase {}
 
@@ -118,14 +118,13 @@ void main() {
   void stubSearch(
     Future<List<Item>> Function(SearchItemsParams params) answer,
   ) {
-    when(() => useCase.execute(any()))
-        .thenAnswer((Invocation invocation) async {
-          final List<Item> page = await answer(
-            invocation.positionalArguments.single as SearchItemsParams,
-          );
-          served.add(page);
-          return page;
-        });
+    when(() => useCase.execute(any())).thenAnswer((Invocation invocation) async {
+      final List<Item> page = await answer(
+        invocation.positionalArguments.single as SearchItemsParams,
+      );
+      served.add(page);
+      return page;
+    });
   }
 
   Future<List<Item>> fullPage(SearchItemsParams params) async {
@@ -938,19 +937,16 @@ void main() {
             ),
             (
               'fails',
-              (Completer<List<Item>> c) =>
-                  c.completeError(const FetchFailedException()),
+              (Completer<List<Item>> c) => c.completeError(const FetchFailedException()),
             ),
           ];
 
-      for (final (String name, void Function(Completer<List<Item>>) resolve)
-          in outcomes) {
+      for (final (String name, void Function(Completer<List<Item>>) resolve) in outcomes) {
         test('ignores a request that $name after the bloc is closed', () async {
           stubPending();
           final SearchBloc bloc = build();
           final List<SearchState> states = <SearchState>[];
-          final StreamSubscription<SearchState> subscription = bloc.stream
-              .listen(states.add);
+          final StreamSubscription<SearchState> subscription = bloc.stream.listen(states.add);
 
           bloc.add(const UpdateSearchString(searchString: 'flutter'));
           await pumpEventQueue();

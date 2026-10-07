@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/core.dart';
 import '../../../domain/domain.dart';
-import '../bloc/query_history.dart';
 import '../bloc/search_bloc.dart';
+import '../services/query_history.dart';
 import 'search_content.dart';
 
 class SearchScreen extends StatelessWidget {

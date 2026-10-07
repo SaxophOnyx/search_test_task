@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/core.dart';
 import '../../../domain/domain.dart';
-import 'query_history.dart';
+import '../services/query_history.dart';
 
 part 'search_event.dart';
 part 'search_state.dart';
@@ -40,8 +40,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       return;
     }
 
-    if (query == state.query &&
-        (state.items.isNotEmpty || state.status == .success)) {
+    if (query == state.query && (state.items.isNotEmpty || state.status == .success)) {
       return;
     }
 
