@@ -19,18 +19,26 @@ Each layer is a folder rather than a separate package, to keep a project this si
 
 ## Getting started
 
-Requires Flutter 3.47.2 / Dart ^3.13.2.
+Requires Flutter 3.47.2 / Dart ^3.13.2. Runs on Android and iOS. The HN Algolia API is public, so
+there are no API keys or config to set up.
 
 ```bash
 sh scripts/prebuild.sh
 flutter run
 ```
 
+`prebuild.sh` runs `flutter clean` and `flutter pub get`, then `build_runner` to generate the
+`*.g.dart` files.
+
 ## Running tests
 
 ```bash
 sh scripts/run_all_tests.sh
 ```
+
+Unit tests under `test/src/` mirror `lib/src/`. They cover the provider, entity parsing, mappers,
+the repository's error mapping, DI, the use case, `SearchBloc` (via `bloc_test`) and
+`QueryHistory`. Mocks use `mocktail`.
 
 ## Stack
 
@@ -44,5 +52,5 @@ sh scripts/run_all_tests.sh
 These were skipped because of the project's scale:
 
 - **Query history is in-memory only.** It isn't kept between launches.
-- **Layer boundaries are a convention.** Folders, unlike packages, don't stop one layer importing
-  another.
+- **Layer boundaries are a convention.** Folders don't stop one layer importing another.
+- **Localization**. App uses hardcoded string for now.
