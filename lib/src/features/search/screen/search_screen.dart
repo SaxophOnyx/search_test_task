@@ -14,7 +14,7 @@ class SearchScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<SearchBloc>(
       create: (_) => SearchBloc(
-        searchItemsUseCase: AppDi.locator<SearchItemsUseCase>(),
+        searchItemsUseCase: DiAccess.locator<SearchItemsUseCase>(),
         queryHistory: QueryHistory(),
       ),
       child: const SearchContent(),

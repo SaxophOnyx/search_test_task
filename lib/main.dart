@@ -6,6 +6,6 @@ import 'src/search_app.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  ModuleDi.initialize(AppDi.locator);
+  ModuleDi.initialize(DiAccess.locator);
   runApp(const SearchApp());
 }
