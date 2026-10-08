@@ -1,17 +1,16 @@
 import '../../../core/core.dart';
 import '../../../domain/domain.dart';
+import '../../../shared_ui/shared_ui.dart';
 
 final class SearchExceptionMapper {
   const SearchExceptionMapper._();
 
-  static const String _unknownMessage = 'Something went wrong';
-
-  static String toMessage(AppException exception) {
+  static String toMessage(AppLocalizations l10n, AppException exception) {
     return switch (exception) {
-      LimitReachedException() => 'Too many requests. Try again in a moment',
-      FetchFailedException() => 'Couldn\'t load results. Check your connection',
-      UnknownException() => _unknownMessage,
-      _ => _unknownMessage,
+      LimitReachedException() => l10n.errorTooManyRequests,
+      FetchFailedException() => l10n.errorFetchFailed,
+      UnknownException() => l10n.errorUnknown,
+      _ => l10n.errorUnknown,
     };
   }
 }

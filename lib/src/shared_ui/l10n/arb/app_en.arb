@@ -1,0 +1,35 @@
+{
+  "@@locale": "en",
+  "appTitle": "Search Test Task",
+  "@appTitle": {
+    "description": "Application title shown by the OS task switcher."
+  },
+  "searchHint": "Search",
+  "@searchHint": {
+    "description": "Hint text inside the empty search field."
+  },
+  "searchIdleMessage": "Type to search",
+  "@searchIdleMessage": {
+    "description": "Shown in place of results before any query is entered."
+  },
+  "searchEmptyMessage": "No items found",
+  "@searchEmptyMessage": {
+    "description": "Shown when a search completes with no results."
+  },
+  "retryButton": "Retry",
+  "@retryButton": {
+    "description": "Button that repeats a failed search request."
+  },
+  "errorTooManyRequests": "Too many requests. Try again in a moment",
+  "@errorTooManyRequests": {
+    "description": "Error shown when the search API rate limit is reached."
+  },
+  "errorFetchFailed": "Couldn't load results. Check your connection",
+  "@errorFetchFailed": {
+    "description": "Error shown when results fail to load, e.g. due to a network problem."
+  },
+  "errorUnknown": "Something went wrong",
+  "@errorUnknown": {
+    "description": "Fallback error shown for unexpected failures."
+  }
+}

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared_ui/shared_ui.dart';
+
 class StatusSliver extends StatelessWidget {
   final String? message;
   final VoidCallback? onPressed;
@@ -31,7 +33,7 @@ class StatusSliver extends StatelessWidget {
                     if (onPressed != null)
                       TextButton(
                         onPressed: onPressed,
-                        child: const Text('Retry'),
+                        child: Text(context.l10n.retryButton),
                       ),
                   ],
                 ),

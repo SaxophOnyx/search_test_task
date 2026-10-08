@@ -5,6 +5,7 @@
 lib/**/*.g.dart
 lib/**/*.gr.dart
 lib/**/*.gm.dart
+lib/**/generated/*.dart
 
 # Miscellaneous
 *.class

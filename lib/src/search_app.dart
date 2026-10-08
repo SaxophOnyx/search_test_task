@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'features/search/screen/search_screen.dart';
+import 'shared_ui/shared_ui.dart';
 
 class SearchApp extends StatelessWidget {
   const SearchApp({super.key});
@@ -8,7 +9,9 @@ class SearchApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      onGenerateTitle: (BuildContext context) => context.l10n.appTitle,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),

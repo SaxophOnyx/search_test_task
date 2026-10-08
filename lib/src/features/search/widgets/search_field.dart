@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../shared_ui/shared_ui.dart';
 import 'suggestion_list.dart';
 
 class SearchField extends StatefulWidget {
@@ -113,9 +114,9 @@ class _SearchFieldState extends State<SearchField> {
               onSubmitted: _onSubmitted,
               onTapOutside: (_) => _focusNode.unfocus(),
               textInputAction: .search,
-              decoration: const InputDecoration(
-                hintText: 'Search',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: context.l10n.searchHint,
+                prefixIcon: const Icon(Icons.search),
                 border: InputBorder.none,
               ),
             ),

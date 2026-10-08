@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared_ui/shared_ui.dart';
+
 class ErrorTile extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
@@ -16,7 +18,7 @@ class ErrorTile extends StatelessWidget {
       title: Text(message),
       trailing: TextButton(
         onPressed: onRetry,
-        child: const Text('Retry'),
+        child: Text(context.l10n.retryButton),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/domain.dart';
+import '../../../shared_ui/shared_ui.dart';
 import '../bloc/search_bloc.dart';
 import '../services/search_exception_mapper.dart';
 import '../widgets/error_tile.dart';
@@ -44,18 +45,20 @@ class SearchContent extends StatelessWidget {
                   previous.status != current.status ||
                   previous.exception != current.exception,
               builder: (BuildContext context, SearchState state) {
+                final AppLocalizations l10n = context.l10n;
                 final String errorMessage = SearchExceptionMapper.toMessage(
+                  l10n,
                   state.exception ?? const UnknownException(),
                 );
 
                 if (state.items.isEmpty) {
                   return switch (state.status) {
-                    SearchStatus.idle => const StatusSliver.message(
-                      message: 'Type to search',
+                    SearchStatus.idle => StatusSliver.message(
+                      message: l10n.searchIdleMessage,
                     ),
                     SearchStatus.loading => const StatusSliver.loading(),
-                    SearchStatus.success => const StatusSliver.message(
-                      message: 'No items found',
+                    SearchStatus.success => StatusSliver.message(
+                      message: l10n.searchEmptyMessage,
                     ),
                     SearchStatus.failure => StatusSliver.message(
                       message: errorMessage,
