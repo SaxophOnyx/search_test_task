@@ -10,6 +10,7 @@ part 'search_state.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   static const int _pageSize = 20;
+  static const Duration _debounceDuration = Duration(milliseconds: 500);
 
   final SearchItemsUseCase _searchItemsUseCase;
   final QueryHistory _history;
@@ -22,17 +23,26 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }) : _searchItemsUseCase = searchItemsUseCase,
        _history = queryHistory,
        super(const SearchState.initial()) {
-    on<UpdateSearchString>(_onUpdateSearchString, transformer: restartable());
-    on<UpdateSuggestions>(_onUpdateSuggestions);
-    on<LoadNextPage>(_onLoadNextPage, transformer: droppable());
-    on<RetrySearch>(_onRetrySearch, transformer: droppable());
+    on<_QueryEvent>(_onQuery, transformer: restartable());
+    on<LoadNextPage>(_onLoadNextPage);
+    on<RetrySearch>(_onRetrySearch);
   }
 
-  Future<void> _onUpdateSearchString(
-    UpdateSearchString event,
+  Future<void> _onQuery(
+    _QueryEvent event,
     Emitter<SearchState> emit,
   ) async {
-    final String query = QueryHistory.normalize(event.searchString);
+    emit(state.copyWith(suggestions: _history.suggest(event.query)));
+
+    if (event is UpdateInput) {
+      await Future<void>.delayed(_debounceDuration);
+
+      if (emit.isDone) {
+        return;
+      }
+    }
+
+    final String query = QueryHistory.normalize(event.query);
 
     if (query.isEmpty) {
       _generation++;
@@ -52,13 +62,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     );
 
     await _fetchPage(emit);
-  }
-
-  void _onUpdateSuggestions(
-    UpdateSuggestions event,
-    Emitter<SearchState> emit,
-  ) {
-    emit(state.copyWith(suggestions: _history.suggest(event.input)));
   }
 
   Future<void> _onLoadNextPage(
@@ -107,7 +110,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         SearchItemsParams(query: query, from: loaded.length, limit: _pageSize),
       );
 
-      if (isClosed || generation != _generation) {
+      if (emit.isDone || generation != _generation) {
         return;
       }
 
@@ -124,7 +127,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         ),
       );
     } on AppException catch (exception) {
-      if (isClosed || generation != _generation) {
+      if (emit.isDone || generation != _generation) {
         return;
       }
 

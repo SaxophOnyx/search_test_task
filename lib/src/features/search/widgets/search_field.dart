@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../../shared_ui/shared_ui.dart';
@@ -8,15 +6,13 @@ import 'suggestion_list.dart';
 class SearchField extends StatefulWidget {
   final List<String> suggestions;
   final ValueChanged<String> onChanged;
-  final ValueChanged<String> onSearch;
-  final Duration debounceDuration;
+  final ValueChanged<String> onSubmitted;
 
   const SearchField({
     super.key,
     required this.suggestions,
     required this.onChanged,
-    required this.onSearch,
-    this.debounceDuration = const Duration(milliseconds: 300),
+    required this.onSubmitted,
   });
 
   @override
@@ -29,8 +25,6 @@ class _SearchFieldState extends State<SearchField> {
   final OverlayPortalController _overlayController = OverlayPortalController();
   final LayerLink _layerLink = LayerLink();
 
-  Timer? _debounce;
-
   @override
   void initState() {
     super.initState();
@@ -39,7 +33,6 @@ class _SearchFieldState extends State<SearchField> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _focusNode.dispose();
     _controller.dispose();
     super.dispose();
@@ -53,26 +46,12 @@ class _SearchFieldState extends State<SearchField> {
     }
   }
 
-  void _onChanged(String value) {
-    widget.onChanged(value);
-
-    _debounce?.cancel();
-    _debounce = Timer(widget.debounceDuration, () => widget.onSearch(value));
-  }
-
-  void _onSubmitted(String value) {
-    _debounce?.cancel();
-    widget.onSearch(value);
-  }
-
   void _onSuggestionSelected(String suggestion) {
     _controller.value = TextEditingValue(
       text: suggestion,
       selection: .collapsed(offset: suggestion.length),
     );
-    _debounce?.cancel();
-    widget.onChanged(suggestion);
-    widget.onSearch(suggestion);
+    widget.onSubmitted(suggestion);
     _focusNode.unfocus();
   }
 
@@ -110,8 +89,8 @@ class _SearchFieldState extends State<SearchField> {
             child: TextField(
               controller: _controller,
               focusNode: _focusNode,
-              onChanged: _onChanged,
-              onSubmitted: _onSubmitted,
+              onChanged: widget.onChanged,
+              onSubmitted: widget.onSubmitted,
               onTapOutside: (_) => _focusNode.unfocus(),
               textInputAction: .search,
               decoration: InputDecoration(

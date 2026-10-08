@@ -4,16 +4,18 @@ sealed class SearchEvent {
   const new();
 }
 
-final class UpdateSearchString extends SearchEvent {
-  final String searchString;
+sealed class _QueryEvent extends SearchEvent {
+  final String query;
 
-  const new({required this.searchString});
+  const new({required this.query});
 }
 
-final class UpdateSuggestions extends SearchEvent {
-  final String input;
+final class UpdateInput extends _QueryEvent {
+  const new({required super.query});
+}
 
-  const new({required this.input});
+final class SubmitQuery extends _QueryEvent {
+  const new({required super.query});
 }
 
 final class LoadNextPage extends SearchEvent {

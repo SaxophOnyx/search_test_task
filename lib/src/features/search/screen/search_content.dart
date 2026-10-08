@@ -33,8 +33,8 @@ class SearchContent extends StatelessWidget {
                 builder: (BuildContext context, List<String> suggestions) {
                   return SearchField(
                     suggestions: suggestions,
-                    onChanged: (String value) => bloc.add(UpdateSuggestions(input: value)),
-                    onSearch: (String value) => bloc.add(UpdateSearchString(searchString: value)),
+                    onChanged: (String value) => bloc.add(UpdateInput(query: value)),
+                    onSubmitted: (String value) => bloc.add(SubmitQuery(query: value)),
                   );
                 },
               ),

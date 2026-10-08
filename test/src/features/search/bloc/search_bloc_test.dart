@@ -103,6 +103,8 @@ void main() {
     return matcher;
   }
 
+  final Matcher suggested = isState(suggestions: historySuggestions);
+
   Matcher isParams({required String query, required int from}) {
     return isA<SearchItemsParams>()
         .having((SearchItemsParams p) => p.query, 'query', query)
@@ -118,13 +120,14 @@ void main() {
   void stubSearch(
     Future<List<Item>> Function(SearchItemsParams params) answer,
   ) {
-    when(() => useCase.execute(any())).thenAnswer((Invocation invocation) async {
-      final List<Item> page = await answer(
-        invocation.positionalArguments.single as SearchItemsParams,
-      );
-      served.add(page);
-      return page;
-    });
+    when(() => useCase.execute(any()))
+        .thenAnswer((Invocation invocation) async {
+          final List<Item> page = await answer(
+            invocation.positionalArguments.single as SearchItemsParams,
+          );
+          served.add(page);
+          return page;
+        });
   }
 
   Future<List<Item>> fullPage(SearchItemsParams params) async {
@@ -179,15 +182,16 @@ void main() {
       );
     });
 
-    group('UpdateSearchString', () {
+    group('SubmitQuery', () {
       blocTest<SearchBloc, SearchState>(
         'emits loading, then success with the first page',
         setUp: () => stubSearch(lastPage),
         build: build,
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
         },
         expect: () => <Matcher>[
+          suggested,
           isState(
             status: .loading,
             query: 'flutter',
@@ -214,10 +218,11 @@ void main() {
         build: build,
         act: (SearchBloc bloc) {
           bloc.add(
-            const UpdateSearchString(searchString: '  flutter \t  dart\n'),
+            const SubmitQuery(query: '  flutter \t  dart\n'),
           );
         },
         expect: () => <Matcher>[
+          suggested,
           isState(status: .loading, query: 'flutter dart'),
           isState(status: .success, query: 'flutter dart'),
         ],
@@ -233,9 +238,10 @@ void main() {
         setUp: () => stubSearch(fullPage),
         build: build,
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
         },
         expect: () => <Matcher>[
+          suggested,
           isState(status: .loading),
           isState(status: .success, items: served.single, hasReachedEnd: false),
         ],
@@ -246,9 +252,10 @@ void main() {
         setUp: () => stubSearch(lastPage),
         build: build,
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
         },
         expect: () => <Matcher>[
+          suggested,
           isState(status: .loading),
           isState(status: .success, items: served.single, hasReachedEnd: true),
         ],
@@ -259,9 +266,10 @@ void main() {
         setUp: () => stubSearch((SearchItemsParams _) async => <Item>[]),
         build: build,
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
         },
         expect: () => <Matcher>[
+          suggested,
           isState(status: .loading),
           isState(
             status: .success,
@@ -282,9 +290,10 @@ void main() {
           setUp: () => stubFailure(exception),
           build: build,
           act: (SearchBloc bloc) {
-            bloc.add(const UpdateSearchString(searchString: 'flutter'));
+            bloc.add(const SubmitQuery(query: 'flutter'));
           },
           expect: () => <Matcher>[
+            suggested,
             isState(status: .loading, query: 'flutter'),
             isState(
               status: .failure,
@@ -307,9 +316,10 @@ void main() {
             suggestions: historySuggestions,
           ),
           act: (SearchBloc bloc) {
-            bloc.add(UpdateSearchString(searchString: input));
+            bloc.add(SubmitQuery(query: input));
           },
           expect: () => <Matcher>[
+            suggested,
             isState(
               status: .idle,
               query: '',
@@ -328,15 +338,17 @@ void main() {
         setUp: stubPending,
         build: build,
         act: (SearchBloc bloc) async {
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
           await pumpEventQueue();
-          bloc.add(const UpdateSearchString(searchString: ''));
+          bloc.add(const SubmitQuery(query: ''));
           await pumpEventQueue();
           pending.single.complete(itemsFor('flutter', 2));
           await pumpEventQueue();
         },
         expect: () => <Matcher>[
+          suggested,
           isState(status: .loading, query: 'flutter'),
+          suggested,
           isState(status: .idle, query: '', items: const <Item>[]),
         ],
         verify: (SearchBloc _) => verifyNever(() => history.save(any())),
@@ -366,9 +378,9 @@ void main() {
             build: build,
             seed: () => seed,
             act: (SearchBloc bloc) {
-              bloc.add(UpdateSearchString(searchString: input));
+              bloc.add(SubmitQuery(query: input));
             },
-            expect: () => isEmpty,
+            expect: () => <Matcher>[suggested],
             verify: (SearchBloc _) => verifyZeroInteractions(useCase),
           );
         }
@@ -383,9 +395,10 @@ void main() {
           exception: const FetchFailedException(),
         ),
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
         },
         expect: () => <Matcher>[
+          suggested,
           isState(status: .loading, exception: isNull),
           isState(status: .success, items: served.single, exception: isNull),
         ],
@@ -402,9 +415,10 @@ void main() {
         build: build,
         seed: () => seeded(items: loaded, hasReachedEnd: true),
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSearchString(searchString: 'dart'));
+          bloc.add(const SubmitQuery(query: 'dart'));
         },
         expect: () => <Matcher>[
+          suggested,
           isState(
             status: .loading,
             query: 'dart',
@@ -430,9 +444,9 @@ void main() {
           setUp: stubPending,
           build: build,
           act: (SearchBloc bloc) async {
-            bloc.add(const UpdateSearchString(searchString: 'flu'));
+            bloc.add(const SubmitQuery(query: 'flu'));
             await pumpEventQueue();
-            bloc.add(const UpdateSearchString(searchString: 'flutter'));
+            bloc.add(const SubmitQuery(query: 'flutter'));
             await pumpEventQueue();
             final (
               Completer<List<Item>> previous,
@@ -453,7 +467,9 @@ void main() {
             await pumpEventQueue();
           },
           expect: () => <Matcher>[
+            suggested,
             isState(status: .loading, query: 'flu'),
+            suggested,
             isState(status: .loading, query: 'flutter', items: const <Item>[]),
             isState(status: .success, query: 'flutter', items: fresh),
           ],
@@ -474,9 +490,10 @@ void main() {
           suggestions: historySuggestions,
         ),
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
         },
         expect: () => <Matcher>[
+          suggested,
           isState(status: .loading, suggestions: historySuggestions),
           isState(status: .success, suggestions: historySuggestions),
         ],
@@ -488,7 +505,7 @@ void main() {
           setUp: () => stubSearch(lastPage),
           build: build,
           act: (SearchBloc bloc) {
-            bloc.add(const UpdateSearchString(searchString: ' flutter  dart '));
+            bloc.add(const SubmitQuery(query: ' flutter  dart '));
           },
           verify: (SearchBloc _) {
             verify(() => history.save('flutter dart')).called(1);
@@ -500,7 +517,7 @@ void main() {
           setUp: () => stubSearch((SearchItemsParams _) async => <Item>[]),
           build: build,
           act: (SearchBloc bloc) {
-            bloc.add(const UpdateSearchString(searchString: 'flutter'));
+            bloc.add(const SubmitQuery(query: 'flutter'));
           },
           verify: (SearchBloc _) => verifyNever(() => history.save(any())),
         );
@@ -510,20 +527,22 @@ void main() {
           setUp: () => stubFailure(const FetchFailedException()),
           build: build,
           act: (SearchBloc bloc) {
-            bloc.add(const UpdateSearchString(searchString: 'flutter'));
+            bloc.add(const SubmitQuery(query: 'flutter'));
           },
           verify: (SearchBloc _) => verifyNever(() => history.save(any())),
         );
       });
     });
 
-    group('UpdateSuggestions', () {
+    group('UpdateInput', () {
+      const Duration debounce = Duration(milliseconds: 550);
+
       blocTest<SearchBloc, SearchState>(
-        'emits history suggestions and leaves the results untouched',
+        'emits history suggestions at once and leaves the results untouched',
         build: build,
         seed: () => seeded(items: loaded, hasReachedEnd: true),
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSuggestions(input: 'flu'));
+          bloc.add(const UpdateInput(query: 'flu'));
         },
         expect: () => <Matcher>[
           isState(
@@ -535,13 +554,14 @@ void main() {
             exception: isNull,
           ),
         ],
+        verify: (SearchBloc _) => verifyZeroInteractions(useCase),
       );
 
       blocTest<SearchBloc, SearchState>(
         'passes the raw input, so a trailing space can mark a finished word',
         build: build,
         act: (SearchBloc bloc) {
-          bloc.add(const UpdateSuggestions(input: ' Flutter '));
+          bloc.add(const UpdateInput(query: ' Flutter '));
         },
         verify: (SearchBloc _) {
           verify(() => history.suggest(' Flutter ')).called(1);
@@ -549,26 +569,103 @@ void main() {
       );
 
       blocTest<SearchBloc, SearchState>(
-        'keeps suggestions that arrive while a search is in flight',
+        'searches once the input settles',
+        setUp: () => stubSearch(lastPage),
+        build: build,
+        act: (SearchBloc bloc) {
+          bloc.add(const UpdateInput(query: 'flutter'));
+        },
+        wait: debounce,
+        expect: () => <Matcher>[
+          suggested,
+          isState(status: .loading, query: 'flutter'),
+          isState(status: .success, query: 'flutter', items: served.single),
+        ],
+        verify: (SearchBloc _) {
+          expect(capturedParams(), <Matcher>[
+            isParams(query: 'flutter', from: 0),
+          ]);
+        },
+      );
+
+      blocTest<SearchBloc, SearchState>(
+        'searches only the last of rapid inputs',
+        setUp: () => stubSearch(lastPage),
+        build: build,
+        act: (SearchBloc bloc) async {
+          for (final String input in <String>['f', 'flu', 'flutter']) {
+            bloc.add(UpdateInput(query: input));
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+          }
+        },
+        wait: debounce,
+        expect: () => <Matcher>[
+          suggested,
+          suggested,
+          suggested,
+          isState(status: .loading, query: 'flutter'),
+          isState(status: .success, query: 'flutter', items: served.single),
+        ],
+        verify: (SearchBloc _) {
+          expect(capturedParams(), <Matcher>[
+            isParams(query: 'flutter', from: 0),
+          ]);
+        },
+      );
+
+      blocTest<SearchBloc, SearchState>(
+        'drops a pending input when a query is submitted',
+        setUp: () => stubSearch(lastPage),
+        build: build,
+        act: (SearchBloc bloc) {
+          bloc
+            ..add(const UpdateInput(query: 'flu'))
+            ..add(const SubmitQuery(query: 'flutter'));
+        },
+        wait: debounce,
+        expect: () => <Matcher>[
+          suggested,
+          suggested,
+          isState(status: .loading, query: 'flutter'),
+          isState(status: .success, query: 'flutter', items: served.single),
+        ],
+        verify: (SearchBloc _) {
+          expect(capturedParams(), <Matcher>[
+            isParams(query: 'flutter', from: 0),
+          ]);
+        },
+      );
+
+      final List<Item> fresh = itemsFor('dart', 2);
+
+      blocTest<SearchBloc, SearchState>(
+        'discards an in-flight response when new input arrives',
         setUp: stubPending,
         build: build,
         act: (SearchBloc bloc) async {
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
           await pumpEventQueue();
-          bloc.add(const UpdateSuggestions(input: 'flu'));
+          bloc.add(const UpdateInput(query: 'dart'));
           await pumpEventQueue();
-          pending.single.complete(loaded);
+          pending.single.complete(itemsFor('flutter', 2));
+          await Future<void>.delayed(debounce);
+          pending.last.complete(fresh);
           await pumpEventQueue();
         },
         expect: () => <Matcher>[
-          isState(status: .loading, suggestions: const <String>[]),
-          isState(status: .loading, suggestions: historySuggestions),
+          suggested,
+          isState(status: .loading, query: 'flutter'),
           isState(
-            status: .success,
-            items: loaded,
+            status: .loading,
+            query: 'flutter',
             suggestions: historySuggestions,
           ),
+          isState(status: .loading, query: 'dart', items: const <Item>[]),
+          isState(status: .success, query: 'dart', items: fresh),
         ],
+        verify: (SearchBloc _) {
+          verifyNever(() => history.save('flutter'));
+        },
       );
     });
 
@@ -694,6 +791,30 @@ void main() {
         },
       );
 
+      blocTest<SearchBloc, SearchState>(
+        'loads the next page of a new query while a stale one is in flight',
+        setUp: stubPending,
+        build: build,
+        seed: () => seeded(items: loaded),
+        act: (SearchBloc bloc) async {
+          bloc.add(const LoadNextPage());
+          await pumpEventQueue();
+          bloc.add(const SubmitQuery(query: 'dart'));
+          await pumpEventQueue();
+          pending[1].complete(itemsFor('dart', 20));
+          await pumpEventQueue();
+          bloc.add(const LoadNextPage());
+          await pumpEventQueue();
+        },
+        verify: (SearchBloc _) {
+          expect(capturedParams(), <Matcher>[
+            isParams(query: 'flutter', from: loaded.length),
+            isParams(query: 'dart', from: 0),
+            isParams(query: 'dart', from: 20),
+          ]);
+        },
+      );
+
       for (final bool staleArrivesFirst in <bool>[true, false]) {
         final List<Item> fresh = itemsFor('dart', 2);
 
@@ -706,7 +827,7 @@ void main() {
           act: (SearchBloc bloc) async {
             bloc.add(const LoadNextPage());
             await pumpEventQueue();
-            bloc.add(const UpdateSearchString(searchString: 'dart'));
+            bloc.add(const SubmitQuery(query: 'dart'));
             await pumpEventQueue();
             final (
               Completer<List<Item>> nextPage,
@@ -733,6 +854,7 @@ void main() {
           },
           expect: () => <Matcher>[
             isState(status: .loading, query: 'flutter'),
+            suggested,
             isState(status: .loading, query: 'dart', items: const <Item>[]),
             isState(status: .success, query: 'dart', items: fresh),
           ],
@@ -747,13 +869,14 @@ void main() {
         act: (SearchBloc bloc) async {
           bloc.add(const LoadNextPage());
           await pumpEventQueue();
-          bloc.add(const UpdateSearchString(searchString: 'dart'));
+          bloc.add(const SubmitQuery(query: 'dart'));
           await pumpEventQueue();
           pending[0].completeError(const FetchFailedException());
           await pumpEventQueue();
         },
         expect: () => <Matcher>[
           isState(status: .loading, query: 'flutter'),
+          suggested,
           isState(status: .loading, query: 'dart', exception: isNull),
         ],
       );
@@ -766,13 +889,14 @@ void main() {
         act: (SearchBloc bloc) async {
           bloc.add(const LoadNextPage());
           await pumpEventQueue();
-          bloc.add(const UpdateSearchString(searchString: ''));
+          bloc.add(const SubmitQuery(query: ''));
           await pumpEventQueue();
           pending.single.complete(itemsFor('flutter', 2, from: loaded.length));
           await pumpEventQueue();
         },
         expect: () => <Matcher>[
           isState(status: .loading),
+          suggested,
           isState(status: .idle, query: '', items: const <Item>[]),
         ],
       );
@@ -915,16 +1039,44 @@ void main() {
         act: (SearchBloc bloc) async {
           bloc.add(const RetrySearch());
           await pumpEventQueue();
-          bloc.add(const UpdateSearchString(searchString: 'dart'));
+          bloc.add(const SubmitQuery(query: 'dart'));
           await pumpEventQueue();
           pending[0].complete(loaded);
           await pumpEventQueue();
         },
         expect: () => <Matcher>[
           isState(status: .loading, query: 'flutter'),
+          suggested,
           isState(status: .loading, query: 'dart', items: const <Item>[]),
         ],
         verify: (SearchBloc _) => verifyNever(() => history.save(any())),
+      );
+
+      blocTest<SearchBloc, SearchState>(
+        'retries a new query while a stale retry is still in flight',
+        setUp: stubPending,
+        build: build,
+        seed: () => seeded(
+          status: .failure,
+          exception: const FetchFailedException(),
+        ),
+        act: (SearchBloc bloc) async {
+          bloc.add(const RetrySearch());
+          await pumpEventQueue();
+          bloc.add(const SubmitQuery(query: 'dart'));
+          await pumpEventQueue();
+          pending[1].completeError(const FetchFailedException());
+          await pumpEventQueue();
+          bloc.add(const RetrySearch());
+          await pumpEventQueue();
+        },
+        verify: (SearchBloc _) {
+          expect(capturedParams(), <Matcher>[
+            isParams(query: 'flutter', from: 0),
+            isParams(query: 'dart', from: 0),
+            isParams(query: 'dart', from: 0),
+          ]);
+        },
       );
     });
 
@@ -937,25 +1089,28 @@ void main() {
             ),
             (
               'fails',
-              (Completer<List<Item>> c) => c.completeError(const FetchFailedException()),
+              (Completer<List<Item>> c) =>
+                  c.completeError(const FetchFailedException()),
             ),
           ];
 
-      for (final (String name, void Function(Completer<List<Item>>) resolve) in outcomes) {
+      for (final (String name, void Function(Completer<List<Item>>) resolve)
+          in outcomes) {
         test('ignores a request that $name after the bloc is closed', () async {
           stubPending();
           final SearchBloc bloc = build();
           final List<SearchState> states = <SearchState>[];
-          final StreamSubscription<SearchState> subscription = bloc.stream.listen(states.add);
+          final StreamSubscription<SearchState> subscription = bloc.stream
+              .listen(states.add);
 
-          bloc.add(const UpdateSearchString(searchString: 'flutter'));
+          bloc.add(const SubmitQuery(query: 'flutter'));
           await pumpEventQueue();
           await bloc.close();
           resolve(pending.single);
           await pumpEventQueue();
           await subscription.cancel();
 
-          expect(states, <Matcher>[isState(status: .loading)]);
+          expect(states, <Matcher>[suggested, isState(status: .loading)]);
           expect(bloc.state, isState(status: .loading));
           verifyNever(() => history.save(any()));
         });
