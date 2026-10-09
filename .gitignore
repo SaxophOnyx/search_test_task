@@ -1,13 +1,35 @@
+# Do not remove or rename entries in this file, only add new ones
+# See https://github.com/flutter/flutter/issues/128635 for more context.
+
+# Generated code
+lib/**/*.g.dart
+lib/**/*.gr.dart
+lib/**/*.gm.dart
+lib/**/generated/*.dart
+
 # Miscellaneous
 *.class
 *.lock
 *.log
 *.pyc
 *.swp
+.DS_Store
+.atom/
 .buildlog/
 .history
+.svn/
 
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
 
+# Visual Studio Code related
+.classpath
+.project
+.settings/
+.vscode/*
 
 # Flutter repo-specific
 /bin/cache/
@@ -19,6 +41,7 @@
 /dev/bots/android_tools/
 /dev/devicelab/ABresults*.json
 /dev/docs/doc/
+/dev/docs/api_docs.zip
 /dev/docs/flutter.docs.zip
 /dev/docs/lib/
 /dev/docs/pubspec.yaml
@@ -39,6 +62,7 @@ analysis_benchmark.json
 **/generated_plugin_registrant.dart
 .packages
 .pub-preload-cache/
+.pub-cache/
 .pub/
 build/
 flutter_*.png
@@ -117,3 +141,4 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+!.vscode/settings.json
