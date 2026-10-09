@@ -26,10 +26,7 @@ class QueryHistory {
     final _HistoryEntry probe = _HistoryEntry.create(input);
 
     if (probe.words.isEmpty) {
-      return _entries
-          .take(limit)
-          .map((_HistoryEntry e) => e.query)
-          .toList(growable: false);
+      return _entries.take(limit).map((_HistoryEntry e) => e.query).toList(growable: false);
     }
 
     final bool isLastWordComplete = input.trimRight().length != input.length;

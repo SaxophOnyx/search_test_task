@@ -5,9 +5,9 @@ import '../../../domain/domain.dart';
 import '../../../shared_ui/shared_ui.dart';
 import '../bloc/search_bloc.dart';
 import '../services/search_exception_mapper.dart';
-import '../widgets/error_tile.dart';
 import '../widgets/item_tile.dart';
 import '../widgets/loading_tile.dart';
+import '../widgets/message_tile.dart';
 import '../widgets/search_field.dart';
 import '../widgets/status_sliver.dart';
 
@@ -69,7 +69,7 @@ class SearchContent extends StatelessWidget {
 
                 final Widget? footer = switch (state.status) {
                   SearchStatus.loading => const LoadingTile(),
-                  SearchStatus.failure => ErrorTile(
+                  SearchStatus.failure => MessageTile(
                     message: errorMessage,
                     onRetry: () => context.read<SearchBloc>().add(const RetrySearch()),
                   ),

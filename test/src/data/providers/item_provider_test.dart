@@ -88,17 +88,16 @@ void main() {
         await expectLater(search(), throwsA(isA<FetchFailedException>()));
       });
 
-      final List<(String, Map<String, dynamic>?)> malformed =
-          <(String, Map<String, dynamic>?)>[
-            ('the body is null', null),
-            ('the hits key is missing', <String, dynamic>{'nbHits': 0}),
-            (
-              'a hit is not a map',
-              <String, dynamic>{
-                'hits': <dynamic>['not a map'],
-              },
-            ),
-          ];
+      final List<(String, Map<String, dynamic>?)> malformed = <(String, Map<String, dynamic>?)>[
+        ('the body is null', null),
+        ('the hits key is missing', <String, dynamic>{'nbHits': 0}),
+        (
+          'a hit is not a map',
+          <String, dynamic>{
+            'hits': <dynamic>['not a map'],
+          },
+        ),
+      ];
 
       for (final (String name, Map<String, dynamic>? data) in malformed) {
         test('throws UnknownException when $name', () async {

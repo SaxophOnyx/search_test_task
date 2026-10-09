@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared_ui/shared_ui.dart';
+import 'message_tile.dart';
 
 class StatusSliver extends StatelessWidget {
   final String? message;
@@ -17,28 +17,12 @@ class StatusSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? message = this.message;
-    final VoidCallback? onPressed = this.onPressed;
 
     return SliverFillRemaining(
       hasScrollBody: false,
-      child: Center(
-        child: message == null
-            ? const CircularProgressIndicator()
-            : Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: .min,
-                  children: <Widget>[
-                    Text(message, textAlign: .center),
-                    if (onPressed != null)
-                      TextButton(
-                        onPressed: onPressed,
-                        child: Text(context.l10n.retryButton),
-                      ),
-                  ],
-                ),
-              ),
-      ),
+      child: message == null
+          ? const Center(child: CircularProgressIndicator())
+          : MessageTile(message: message, onRetry: onPressed),
     );
   }
 }

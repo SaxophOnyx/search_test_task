@@ -96,7 +96,6 @@ class _SearchFieldState extends State<SearchField> {
               decoration: InputDecoration(
                 hintText: context.l10n.searchHint,
                 prefixIcon: const Icon(Icons.search),
-                border: InputBorder.none,
               ),
             ),
           ),

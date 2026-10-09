@@ -12,9 +12,8 @@ class SearchApp extends StatelessWidget {
       onGenerateTitle: (BuildContext context) => context.l10n.appTitle,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       home: const SearchScreen(),
     );
   }

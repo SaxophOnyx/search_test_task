@@ -12,8 +12,7 @@ final class SearchItemsParams {
   });
 }
 
-class SearchItemsUseCase
-    implements FutureUseCase<SearchItemsParams, List<Item>> {
+class SearchItemsUseCase implements FutureUseCase<SearchItemsParams, List<Item>> {
   final ItemRepository _itemRepository;
 
   const new({

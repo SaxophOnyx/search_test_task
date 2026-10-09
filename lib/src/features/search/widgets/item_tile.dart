@@ -15,8 +15,20 @@ class ItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Text('$index'),
-      title: Text(item.title),
+      leading: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: ListTileTheme.of(context).minLeadingWidth ?? 0,
+        ),
+        child: Text(
+          '${index + 1}',
+          textAlign: .center,
+        ),
+      ),
+      title: Text(
+        item.title,
+        maxLines: 2,
+        overflow: .ellipsis,
+      ),
     );
   }
 }

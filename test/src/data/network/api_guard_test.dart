@@ -29,34 +29,33 @@ void main() {
         expect(await guard.run(() async => 42), 42);
       });
 
-      final List<(String, Object, Matcher)> failures =
-          <(String, Object, Matcher)>[
-            (
-              'LimitReachedException on a 429 response',
-              dioException(statusCode: 429),
-              isA<LimitReachedException>(),
-            ),
-            (
-              'FetchFailedException on any other error status',
-              dioException(statusCode: 500),
-              isA<FetchFailedException>(),
-            ),
-            (
-              'FetchFailedException when Dio has no response',
-              dioException(),
-              isA<FetchFailedException>(),
-            ),
-            (
-              'UnknownException when Dio fails to cast the response',
-              dioException(error: TypeError()),
-              isA<UnknownException>(),
-            ),
-            (
-              'UnknownException on a parse error',
-              TypeError(),
-              isA<UnknownException>(),
-            ),
-          ];
+      final List<(String, Object, Matcher)> failures = <(String, Object, Matcher)>[
+        (
+          'LimitReachedException on a 429 response',
+          dioException(statusCode: 429),
+          isA<LimitReachedException>(),
+        ),
+        (
+          'FetchFailedException on any other error status',
+          dioException(statusCode: 500),
+          isA<FetchFailedException>(),
+        ),
+        (
+          'FetchFailedException when Dio has no response',
+          dioException(),
+          isA<FetchFailedException>(),
+        ),
+        (
+          'UnknownException when Dio fails to cast the response',
+          dioException(error: TypeError()),
+          isA<UnknownException>(),
+        ),
+        (
+          'UnknownException on a parse error',
+          TypeError(),
+          isA<UnknownException>(),
+        ),
+      ];
 
       for (final (String name, Object error, Matcher matcher) in failures) {
         test('throws $name', () async {

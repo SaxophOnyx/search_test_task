@@ -120,14 +120,13 @@ void main() {
   void stubSearch(
     Future<List<Item>> Function(SearchItemsParams params) answer,
   ) {
-    when(() => useCase.execute(any()))
-        .thenAnswer((Invocation invocation) async {
-          final List<Item> page = await answer(
-            invocation.positionalArguments.single as SearchItemsParams,
-          );
-          served.add(page);
-          return page;
-        });
+    when(() => useCase.execute(any())).thenAnswer((Invocation invocation) async {
+      final List<Item> page = await answer(
+        invocation.positionalArguments.single as SearchItemsParams,
+      );
+      served.add(page);
+      return page;
+    });
   }
 
   Future<List<Item>> fullPage(SearchItemsParams params) async {
@@ -1089,19 +1088,16 @@ void main() {
             ),
             (
               'fails',
-              (Completer<List<Item>> c) =>
-                  c.completeError(const FetchFailedException()),
+              (Completer<List<Item>> c) => c.completeError(const FetchFailedException()),
             ),
           ];
 
-      for (final (String name, void Function(Completer<List<Item>>) resolve)
-          in outcomes) {
+      for (final (String name, void Function(Completer<List<Item>>) resolve) in outcomes) {
         test('ignores a request that $name after the bloc is closed', () async {
           stubPending();
           final SearchBloc bloc = build();
           final List<SearchState> states = <SearchState>[];
-          final StreamSubscription<SearchState> subscription = bloc.stream
-              .listen(states.add);
+          final StreamSubscription<SearchState> subscription = bloc.stream.listen(states.add);
 
           bloc.add(const SubmitQuery(query: 'flutter'));
           await pumpEventQueue();

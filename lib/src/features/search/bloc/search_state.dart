@@ -45,9 +45,7 @@ final class SearchState {
       status: status ?? this.status,
       hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
       suggestions: suggestions ?? this.suggestions,
-      exception: identical(exception, _unset)
-          ? this.exception
-          : exception as AppException?,
+      exception: identical(exception, _unset) ? this.exception : exception as AppException?,
     );
   }
 }

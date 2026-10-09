@@ -12,10 +12,7 @@ class SuggestionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      elevation: 4,
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      clipBehavior: .antiAlias,
+    return Card(
       child: ListView(
         shrinkWrap: true,
         padding: EdgeInsets.zero,

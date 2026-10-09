@@ -14,8 +14,7 @@ class ItemEntity {
     required this.createdAtI,
   });
 
-  factory ItemEntity.fromJson(Map<String, dynamic> json) =>
-      _$ItemEntityFromJson(json);
+  factory ItemEntity.fromJson(Map<String, dynamic> json) => _$ItemEntityFromJson(json);
 
   Map<String, dynamic> toJson() => _$ItemEntityToJson(this);
 }

@@ -22,21 +22,20 @@ void main() {
         expect(entity.createdAtI, 1700000000);
       });
 
-      final List<(String, Map<String, dynamic>)> invalid =
-          <(String, Map<String, dynamic>)>[
-            (
-              'a required field is missing',
-              Map<String, dynamic>.of(json)..remove('title'),
-            ),
-            (
-              'a required field is null',
-              <String, dynamic>{...json, 'story_id': null},
-            ),
-            (
-              'a field has the wrong type',
-              <String, dynamic>{...json, 'created_at_i': '1700000000'},
-            ),
-          ];
+      final List<(String, Map<String, dynamic>)> invalid = <(String, Map<String, dynamic>)>[
+        (
+          'a required field is missing',
+          Map<String, dynamic>.of(json)..remove('title'),
+        ),
+        (
+          'a required field is null',
+          <String, dynamic>{...json, 'story_id': null},
+        ),
+        (
+          'a field has the wrong type',
+          <String, dynamic>{...json, 'created_at_i': '1700000000'},
+        ),
+      ];
 
       for (final (String name, Map<String, dynamic> payload) in invalid) {
         test('throws when $name', () {

@@ -11,8 +11,7 @@ void main() {
 
   setUp(() {
     repository = MockItemRepository();
-    locator = GetIt.asNewInstance()
-      ..registerSingleton<ItemRepository>(repository);
+    locator = GetIt.asNewInstance()..registerSingleton<ItemRepository>(repository);
     DomainDi.initDependencies(locator);
   });
 
