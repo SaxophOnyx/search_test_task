@@ -18,8 +18,6 @@ class SearchContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final SearchBloc bloc = context.read<SearchBloc>();
-
     return Scaffold(
       body: NotificationListener<ScrollMetricsNotification>(
         onNotification: (ScrollMetricsNotification n) => _onScrollMetrics(context, n),
@@ -33,8 +31,10 @@ class SearchContent extends StatelessWidget {
                 builder: (BuildContext context, List<String> suggestions) {
                   return SearchField(
                     suggestions: suggestions,
-                    onChanged: (String value) => bloc.add(UpdateInput(query: value)),
-                    onSubmitted: (String value) => bloc.add(SubmitQuery(query: value)),
+                    onChanged: (String value) =>
+                        context.read<SearchBloc>().add(UpdateInput(query: value)),
+                    onSubmitted: (String value) =>
+                        context.read<SearchBloc>().add(SubmitQuery(query: value)),
                   );
                 },
               ),
@@ -62,7 +62,7 @@ class SearchContent extends StatelessWidget {
                     ),
                     SearchStatus.failure => StatusSliver.message(
                       message: errorMessage,
-                      onPressed: () => bloc.add(const RetrySearch()),
+                      onPressed: () => context.read<SearchBloc>().add(const RetrySearch()),
                     ),
                   };
                 }
@@ -71,7 +71,7 @@ class SearchContent extends StatelessWidget {
                   SearchStatus.loading => const LoadingTile(),
                   SearchStatus.failure => ErrorTile(
                     message: errorMessage,
-                    onRetry: () => bloc.add(const RetrySearch()),
+                    onRetry: () => context.read<SearchBloc>().add(const RetrySearch()),
                   ),
                   SearchStatus.idle || SearchStatus.success => null,
                 };
