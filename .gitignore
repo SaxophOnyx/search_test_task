@@ -2,9 +2,10 @@
 # See https://github.com/flutter/flutter/issues/128635 for more context.
 
 # Generated code
-modules/**/*.g.dart
-modules/**/*.gr.dart
-modules/**/*.gm.dart
+lib/**/*.g.dart
+lib/**/*.gr.dart
+lib/**/*.gm.dart
+lib/**/generated/*.dart
 
 # Miscellaneous
 *.class

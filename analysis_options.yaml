@@ -5,6 +5,7 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.gr.dart"
     - "**/*.gm.dart"
+    - "**/generated/*.dart"
     - build/**
     - android/**
     - ios/**
@@ -18,6 +19,7 @@ analyzer:
 
 formatter:
   trailing_commas: preserve
+  page_width: 100
 
 linter:
   rules:
